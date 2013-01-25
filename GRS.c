@@ -132,7 +132,8 @@ void MatrixMultiply(int row_size, int column_size, int (*matrix)[column_size], i
 *so the sydrome is a M*1 vector
 */
 void ComputeSyndrome(int row_size, int column_size, int (*parity)[column], int *codeword){
-	
+	int i = 0, j = 0 , k = 0;
+	for
 }
 int main(void){
 /*	int pre_parity_check_matrix[M][N] = {1, 1, 1, 1, 1, 1, 1, 1,
