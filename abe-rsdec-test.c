@@ -38,11 +38,12 @@ typedef struct {
   mpz_ptr quotient_cmp;
 } *curve_data_ptr;
 
-void consumerShares(int *codeword){
+void consumerShares(signed long int *codeword){
     pairing_t pairing;
     element_t g, r, a, e_g_g, share;
     char *argv = "./param/a.param";
     char s[16384];
+    signed long int temp_share;
     FILE *fp = stdin;
 
     fp = fopen(argv, "r");
@@ -73,6 +74,10 @@ void consumerShares(int *codeword){
     element_pow_zn(e_g_g, e_g_g, r);
     //compute e(g,g)^ra
     element_pow_zn(e_g_g, e_g_g, a);
-    //transfer secret shares to an element_t type
+    temp_share = codeword[0];
+    //transfer signed long int type ecret shares to an element_t type before we do the power of
+    //e_g_g
+    element_set_si(share, temp_share);
     element_pow_zn(e_g_g, e_g_g, share);
+    
 }
