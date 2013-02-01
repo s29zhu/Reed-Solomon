@@ -1,4 +1,4 @@
-/*polynomial.c
+/*rsdecode.c
  *Shasha Zhu
  *Oct, 2012
 
