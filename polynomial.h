@@ -1,7 +1,11 @@
+//RS w-bit per symbol
 #define w 16
-#define N  ((1 << w) - 1)
-#define Num  60
-#define K 3
+//RS codeword length
+#define N  8
+#define M N - 1
+//#define Num  60
+//RS information word length
+#define K 5
 
 void factorization(unsigned int *poly);
 void lengthOfArray(unsigned int *array, unsigned int *length);

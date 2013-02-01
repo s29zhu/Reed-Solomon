@@ -11,6 +11,7 @@
 #include "stdlib.h"
 #include "galois.h"
 #include "grs.h"
+#define ERROR_NUM 1
 
 //compute multipliers withe elimination method
 /*
@@ -173,16 +174,8 @@ void ComputeSyndrome(int row_size, int column_size,
     }
 }
 
-/*
-int main(void){*/
-/*  int pre_parity_check_matrix[M][N] = {1, 1, 1, 1, 1, 1, 1, 1,
-                                1, 2, 3, 4, 5, 6, 7, 8,
-                                1, 4, 5, 9, 8, 13, 12, 15,
-                                1, 8, 15, 15, 3, 5, 15, 15,
-                                1, 9, 8, 14, 15, 7, 6, 3,
-                                1, 11, 1, 10, 1, 11, 11, 1,
-                                1, 15, 3, 3, 5, 8, 3, 8};*/
-/*    
+int main(void){
+    
     int information[K] = {4, 9, 13, 7, 14};
     int codeword[N] = {0};
     int multipliers[N] = {0};
@@ -190,36 +183,60 @@ int main(void){*/
     int pre_parity_check_matrix[M][N] = {0};
     int parity_check_matrix[N - K][N] = {0};
     int syndrome[N] = {0};
-    int i = 0, j = 0, k = 0;*/
+    int i = 0, j = 0, k = 0;
 /*
 *Use pre_parity_check_matrix to compute the column multipliers of the parity check matrix
 *with elimination method
 */
-//    GeneratorMatrix(M, N, pre_parity_check_matrix);
+    GeneratorMatrix(M, N, pre_parity_check_matrix);
 //copy pre_parity_check_matirx to formal parity_check_matrix
-/*    for(i = 0; i < N - K; i++){
+    for(i = 0; i < N - K; i++){
         for(j = 0; j < N; j++){
             parity_check_matrix[i][j] = pre_parity_check_matrix[i][j];
         }
-    }*/
+    }
 /*
 *Use pre_parity_check_matrix to compute the column multipliers of the parity check matrix
 *with elimination method
 */
 //compute the colomn multipliers of parity check matrix
-//    ComputeMultipliers(pre_parity_check_matrix, multipliers);
+    ComputeMultipliers(pre_parity_check_matrix, multipliers);
 //compute the parity check matrix
-//    MatrixMultiply(N - K, N, parity_check_matrix, multipliers);
+    MatrixMultiply(N - K, N, parity_check_matrix, multipliers);
 /*compute the generator matrix, since the colomn multipliers of generator matrix are ones,
 *then the we eliminate the step to multiply the generator matrix by colomn multipliers.
 */
-//    GeneratorMatrix(K, N, generator);   
+    GeneratorMatrix(K, N, generator);   
 //compute the codeword  
-//    ComputeCodeword(information, K, codeword, N);
+    ComputeCodeword(information, K, codeword, N);
 //Assume that there is an error in the codeword, and suppose its on the second
 //position
-//    codeword[1] = 0;
-//    ComputeSyndrome(N - K, N, parity_check_matrix, codeword, syndrome);
+    codeword[1] = 0;
+    ComputeSyndrome(N - K, N, parity_check_matrix, codeword, syndrome);
     // here we can see that the syndrom is not all zero vector any more
-//    return 1;
-//}
+         unsigned int error_locator_poly[(N - K)/2 + 1] = {0};
+     unsigned int error_locator_poly_derivative[(N - K)/2 + 1] = {0};
+     unsigned int error_evaluator_poly[N] = {0};
+     unsigned int error_magnitudes[ERROR_NUM] = {0};
+     unsigned int locators[ERROR_NUM] = {0}; 
+     int error_location = 0;
+     int *galois_ilog_table = NULL;
+
+    galois_ilog_table = galois_get_ilog_table(w);
+     locators[0] = galois_ilog_table[1];
+     get_error_locate_poly(locators, ERROR_NUM, error_locator_poly);
+     get_evaluator_poly(syndrome, error_locator_poly, error_evaluator_poly);
+     get_formal_derivation(error_locator_poly, error_locator_poly_derivative, (N - K)/2 + 1);
+     evaluate_error(error_magnitudes, 
+                        error_locator_poly_derivative, 
+                        error_evaluator_poly, 
+                        locators,
+                        ERROR_NUM);
+     //add the error magnitudes to received codeword
+     for(i = 0; i < ERROR_NUM; i++){
+         error_location = galois_log(locators[i], w);
+         codeword[error_location] ^= error_magnitudes[i];
+     }
+
+    return 1;
+}

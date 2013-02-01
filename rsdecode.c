@@ -40,6 +40,8 @@ void get_parity_check_matrix(){
 	}*/
 }
 
+//when compute the syndrome, codeword should be in format of c0c1c2..., other
+//than the polynomial reverse format
 //Syndrome = [s1, s2, ..., sr]
 unsigned int *compute_syndrome(unsigned int *syndrome, unsigned int *received_codeword){
 	unsigned int sum = 0;
@@ -97,6 +99,7 @@ unsigned int *compute_syndrome(unsigned int *syndrome, unsigned int *received_co
 	factorize_poly(locators, error_locator_poly);///????hard problem
 }*/
 
+//
 void evaluate_error(unsigned int *error_magnitudes, 
 			unsigned int *error_locator_poly_derivative, 
 			unsigned int *error_evaluator_poly, 
@@ -156,11 +159,13 @@ void rsdecode(unsigned int *locators, unsigned int *received_codeword){
 		received_codeword[error_location] ^= error_magnitudes[i];		
 	}
 }
-
+/*
 int main(void){
-	int i = 0;
+	int i = 0; 
+	//error_locator_poly is in a format of (1 + (A^i)x)*...*(1 + (A^j)x)
+	//locators[i] represents the  A^i, ..., A^j in the error locator polynomial
 	unsigned int locators[ERROR_NUM] = {6};
-	unsigned int received_codeword[N]={2, 6, 7, 6, 3, 7, 2};//wrong, the representation 
+	unsigned int received_codeword[N]={2, 7, 3, 1, 0, 6, 4};
 	rsdecode(locators, received_codeword);
 	printf("After correction, the codeword is:\n");
 	for(i = 0; i < N; i++){
@@ -168,4 +173,4 @@ int main(void){
 	}
 	printf("\n");
 	return 1;
-}
+}*/

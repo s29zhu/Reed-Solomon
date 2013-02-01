@@ -1,4 +1,4 @@
-/*polynomial.c
+/*rsencode.c
  *Shasha Zhu
  *Oct, 2012
 	
@@ -31,7 +31,9 @@ unsigned int *get_generator_poly(unsigned int *generator_poly){
 }
 
 //format of codeword is (c0, c1, c2, ..., cN-1)
-//if we put the codeword in polynomial representation, then it should be like (cN-1, ..., c2, c1, c0)
+//if we put the codeword in polynomial representation, then it should be like
+//(cN-1, ..., c2, c1, c0), this is only used for rsencode, rsdecode will be the
+//original way.
 unsigned int *rsencode(unsigned int *message, unsigned int *generator, unsigned int *codeword){
  	int i = 0;
 	for(i = 0; i < K; i++){

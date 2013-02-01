@@ -74,13 +74,16 @@ void get_formal_derivation(unsigned int *poly, unsigned int *derivative, int pol
 }
 
 //size of syndrome is r, size of error_locator_poly is (N - K) / 2 + 1, size of error_evaluator_poly is N
+//evaluator_poly = (1 + syndrome_poly)*(error_locator_poly)
 void get_evaluator_poly(unsigned int *syndrome, unsigned int *error_locator_poly, unsigned int *error_evaluator_poly){
 	int i = 0 , j = 0, k = 0, l = 0;
 	unsigned int syndrome_plus_one[N - K + 1] = {0};
+	//compute 1 + s(x), s(x) is the syndrome polynomial
 	for(i = 1 ; i < N - K + 1; i++){
 		syndrome_plus_one[i] = syndrome[i - 1];
 	}
 	syndrome_plus_one[0] = 1;
+	//compute (1 + s(x))*error_locator_poly
 	for(i = 0; i <= N - K; i++){ //s1, s2, ..., sr multiply error_locator_poly one after each other
 		for(j = (N - K) / 2; j >= 0; j--){
 			error_evaluator_poly[N - k - 1 - (N - K) / 2 + j] ^= galois_single_multiply(error_locator_poly[j], syndrome_plus_one[i], w);
