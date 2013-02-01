@@ -109,6 +109,9 @@ void evaluate_error(unsigned int *error_magnitudes,
 	unsigned int poly_evaluation = 0;
 	unsigned int power = 1;
 	unsigned int inverse_locator = 0 ;
+	int temp = 0;// temp is the power of locator[i], also the error location,
+	//ranges from 1 to N 
+
 	for(i = 0; i < length_of_locators; i++){
 		inverse_locator = galois_inverse(locators[i], w);
 		//nominator computing
@@ -131,6 +134,13 @@ void evaluate_error(unsigned int *error_magnitudes,
 		}
 		// error magnitudes  computing		
 		error_magnitudes[i] = galois_single_divide(error_magnitudes[i], poly_evaluation, w);
+		//if decode GRS, then we will have to divide error_magnitudes by parity
+		//check matrix's corresponding column multipliers, otherwise we have to
+		//comment this function or set multipliers vector to all ones.
+		temp = galois_log(locators[i], w);
+
+		error_magnitudes[i] = galois_single_divide(error_magnitudes[i],
+		                                            multiplier[temp], w);
 	}
 	printf("The error magnitudes are:\n");
 	for(i = 0; i < length_of_locators; i ++){
