@@ -75,6 +75,8 @@ void get_formal_derivation(unsigned int *poly, unsigned int *derivative, int pol
 
 //size of syndrome is r, size of error_locator_poly is (N - K) / 2 + 1, size of error_evaluator_poly is N
 //evaluator_poly = (1 + syndrome_poly)*(error_locator_poly)
+//This function only works with berley-kalm algorithm for narrow sense RS
+
 void get_evaluator_poly(unsigned int *syndrome, unsigned int *error_locator_poly, unsigned int *error_evaluator_poly){
 	int i = 0 , j = 0, k = 0, l = 0;
 	unsigned int syndrome_plus_one[N - K + 1] = {0};
@@ -98,6 +100,13 @@ void get_evaluator_poly(unsigned int *syndrome, unsigned int *error_locator_poly
 	for(i = 0; i < N; i++)
 		printf("%d	", error_evaluator_poly[i]);
 	printf("\n");    				
+}
+
+//get GRS error evaluate polynomial = segma(j belongs to J)multi(1-alpa(subj)x)
+//J is a set of error locations
+void grs_get_evaluator_poly(){
+
+
 }
 
 void get_length_Of_Array(unsigned int *array, unsigned int *length){

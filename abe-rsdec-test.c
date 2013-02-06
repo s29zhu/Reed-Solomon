@@ -14,6 +14,7 @@
 #include <string.h>
 #include "grs.h"
 
+
 typedef struct {
   field_t Fq, Fq2, Eq;
   int exp2, exp1;

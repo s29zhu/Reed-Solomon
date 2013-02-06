@@ -103,6 +103,7 @@ unsigned int *compute_syndrome(unsigned int *syndrome, unsigned int *received_co
 void evaluate_error(unsigned int *error_magnitudes, 
 			unsigned int *error_locator_poly_derivative, 
 			unsigned int *error_evaluator_poly, 
+			unsigned int *multipliers,
 			unsigned int *locators, 
 			int length_of_locators){
 	int i = 0, j = 0, k = 0;
@@ -138,9 +139,10 @@ void evaluate_error(unsigned int *error_magnitudes,
 		//check matrix's corresponding column multipliers, otherwise we have to
 		//comment this function or set multipliers vector to all ones.
 		temp = galois_log(locators[i], w);
-
+        //the parameter multipliers[] should be computed from grs_basic.c
+       //function ComputeMultipliers
 		error_magnitudes[i] = galois_single_divide(error_magnitudes[i],
-		                                            multiplier[temp], w);
+		                                            multipliers[temp], w);
 	}
 	printf("The error magnitudes are:\n");
 	for(i = 0; i < length_of_locators; i ++){

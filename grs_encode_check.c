@@ -11,11 +11,9 @@
 #include "stdlib.h"
 #include "galois.h"
 #include "grs.h"
-#define ERROR_NUM 1
 
 //compute multipliers withe elimination method
 /*
-
 in this case, the linear equations are given as a format of
 
 m*n matrix          n*1 matrix  
@@ -79,8 +77,7 @@ int * ComputeMultipliers(int code_locators[M][N],
 }
 
 /* Get the codeword by evaluating the information polynomial
-*information polynomial's coefficients are stored in array information from low
-degree to high degre
+
 */
 int* ComputeCodeword(int * information, int info_size, int *codeword, int codeword_size){
     int i = 0, j = 0, k = 0;
@@ -177,7 +174,13 @@ void ComputeSyndrome(int row_size, int column_size,
 }
 
 int main(void){
-    
+/*  int pre_parity_check_matrix[M][N] = {1, 1, 1, 1, 1, 1, 1, 1,
+                                1, 2, 3, 4, 5, 6, 7, 8,
+                                1, 4, 5, 9, 8, 13, 12, 15,
+                                1, 8, 15, 15, 3, 5, 15, 15,
+                                1, 9, 8, 14, 15, 7, 6, 3,
+                                1, 11, 1, 10, 1, 11, 11, 1,
+                                1, 15, 3, 3, 5, 8, 3, 8};*/
     int information[K] = {4, 9, 13, 7, 14};
     int codeword[N] = {0};
     int multipliers[N] = {0};
@@ -213,32 +216,8 @@ int main(void){
     ComputeCodeword(information, K, codeword, N);
 //Assume that there is an error in the codeword, and suppose its on the second
 //position
-    codeword[2] = 0;
+    codeword[1] = 0;
     ComputeSyndrome(N - K, N, parity_check_matrix, codeword, syndrome);
     // here we can see that the syndrom is not all zero vector any more
-     unsigned int error_locator_poly[(N - K)/2 + 1] = {0};
-     unsigned int error_locator_poly_derivative[(N - K)/2 + 1] = {0};
-     unsigned int error_evaluator_poly[N] = {0};
-     unsigned int error_magnitudes[ERROR_NUM] = {0};
-     unsigned int locators[ERROR_NUM] = {0}; 
-     int error_location = 0;
-     int *galois_ilog_table = NULL;
-
-    galois_ilog_table = galois_get_ilog_table(w);
-     locators[0] = galois_ilog_table[2];
-     get_error_locate_poly(locators, ERROR_NUM, error_locator_poly);
-     get_evaluator_poly(syndrome, error_locator_poly, error_evaluator_poly);
-     get_formal_derivation(error_locator_poly, error_locator_poly_derivative, (N - K)/2 + 1);
-     evaluate_error(error_magnitudes, 
-                        error_locator_poly_derivative, 
-                        error_evaluator_poly, 
-                        locators,
-                        ERROR_NUM);
-     //add the error magnitudes to received codeword
-     for(i = 0; i < ERROR_NUM; i++){
-         error_location = galois_log(locators[i], w);
-         codeword[error_location] ^= error_magnitudes[i];
-     }
-
     return 1;
-}
+//}
