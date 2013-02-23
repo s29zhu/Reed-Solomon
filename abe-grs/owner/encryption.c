@@ -53,8 +53,16 @@ void hash_attributes(element_t *ele_attr_hash, void *attr[NUM_SHARE]){
 }
 
 
-void init(element_t *qR, element_t *ele_att_hash, void *attr[NUM_SHARE]){
+void initialize(element_t *qR, 
+                element_t *ele_att_hash, 
+                pairing_t *pairing,
+                element_t *g,
+                element_t *Cy,
+                element_t *Cy_prime){
    //initialize the attribute string 
+    int i = 0;
+    char *attr[NUM_SHARE];
+    FILE *fp = NULL;
     attr[0] = "http://www.servername.com/pathtofile";
     attr[1] = "Julia Zhu";
     attr[2] = "4";
@@ -64,20 +72,47 @@ void init(element_t *qR, element_t *ele_att_hash, void *attr[NUM_SHARE]){
     attr[6] = "printer";
     attr[7] = "check string 1";
     attr[8] = "check string 2";
+    element_init_G1(*g, *pairing);
     //initialize the attributes' hash value
-    
+    for(i = 0; i < NUM_SHARE; i++){
+        element_init_G1(ele_att_hash[i], *pairing);
+        //element_from_hash(ele_att_hash[i], (void *)attr[i], 256);
+        element_init_Zr(qR[i], *pairing);
+        element_init_G1(Cy[i], *pairing);
+        element_init_G1(Cy_prime[i], *pairing);
+    }
+    element_init_Zr(qR[i], *pairing);
+}
+
+void finalize(element_t *qR,
+                element_t *ele_att_hash,
+                element_t *g,
+                element_t *Cy,
+                element_t *Cy_prime){
+    int i = 0;
+    element_clear(*g);
+    for(i = 0; i < NUM_SHARE; i++){
+        element_clear(ele_att_hash[i]);
+        element_clear(qR[i]);
+        element_clear(Cy[i]);
+        element_clear(Cy_prime[i]);
+    }
+    element_clear(qR[i]);
 }
 
 int main(void){
-
+    //All names of the variable is either enherited from the paper or from pbc
+    //library
     pairing_t pairing;
     element_t g;
     element_t *ele_att_hash;
-    void **attr;
     element_t *qR;
+    element_t *Cy;
+    element_t *Cy_prime;
     char s[16384];
     FILE *fp;
-
+    int i = 0;  
+    //initialize the pairing
     fp = fopen("../public/a.param", "r");
     if (!fp) 
         pbc_die("error opening parameter file");
@@ -88,8 +123,35 @@ int main(void){
     if(pairing_init_set_buf(pairing, s, count)) 
         pbc_die("pairing init failed\n");
     if(!pairing_is_symmetric(pairing)) pbc_die("pairing is not symmetric\n");
-
-    element_init_G1(g, pairing);
     
+    //memory allocation starts here
+    qR = (element_t *)malloc(sizeof(element_t)*(NUM_SHARE + 1)); 
+    ele_att_hash = (element_t *)malloc(sizeof(element_t)*NUM_SHARE);
+    Cy = (element_t *)malloc(sizeof(element_t)*NUM_SHARE);
+    Cy_prime = (element_t *)malloc(sizeof(element_t)*NUM_SHARE);
+    initialize(qR, ele_att_hash, &pairing, &g, Cy, Cy_prime);
+
+    //randomly pick the nodes' values and save them into a file
+    fp = fopen("nodes_value_of_tree.txt", "w+");
+    if(!fp)
+        pbc_die("error opening the tree value file");
+    for(i = 0; i < NUM_SHARE + 1; i++){
+        element_random(qR[i]);
+        fprintf(fp, "qR(%d):", i);
+        element_out_str(fp, 10, qR[i]);
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+    
+    element_set(g, ((curve_data_ptr)((a_pairing_data_ptr)
+    pairing->data)->Eq->data)->gen);
+    /*here is the encryption part*/
+    for(i = 0; i < NUM_SHARE; i++){
+        element_pow_zn(Cy[i], g, qR[i+1]);    
+        element_pow_zn(Cy_prime[i], ele_att_hash[i], qR[i+1]);
+    }
+    //read out the public key of owner
+    //read out the message and multiply it by e(g,g)^(alpha*s)  
+    finalize(qR, ele_att_hash, &g, Cy, Cy_prime); 
     return 0;
 }
