@@ -33,29 +33,6 @@ typedef struct {
   mpz_ptr quotient_cmp;
 } *curve_data_ptr;
 
-//qR is a pointer which points to access policy tree
-void creat_acc_tree(element_t *qR, pairing_t *pairing);
-void init(element_t *qR, element_t ele_att_hash, void *attr[NUM_SHARE]);
-
-
-void creat_acc_tree(element_t *qR, pairing_t *pairing){
-    int i = 0; 
-
-    for(i = 0; i < NUM_SHARE + 1; i++){
-        //qR[0] is the secret s
-        element_init_Zr(qR[i], *pairing);
-        element_random(qR[i]); 
-    }
-}
-
-void hash_attributes(element_t *ele_attr_hash, void *attr[NUM_SHARE]){
-    int i = 0; 
-    for(i = 0 ; i < NUM_SHARE + 1; i++){
-        element_from_hash(ele_attr_hash[i], attr[i], 256);
-    }
-}
-
-
 void initialize(element_t *qR, 
                 element_t *ele_att_hash, 
                 pairing_t *pairing,
@@ -89,7 +66,7 @@ void initialize(element_t *qR,
     //initialize the attributes' hash value
     for(i = 0; i < NUM_SHARE; i++){
         element_init_G1(ele_att_hash[i], *pairing);
-        //element_from_hash(ele_att_hash[i], (void *)attr[i], 256);
+        element_from_hash(ele_att_hash[i], (void *)attr[i], 256);
         element_init_Zr(qR[i], *pairing);
         element_init_G1(Cy[i], *pairing);
         element_init_G1(Cy_prime[i], *pairing);
@@ -137,7 +114,7 @@ int main(void){
     element_t *Cy_prime;
     element_t *message_ele;
     char s[16384];
-    FILE *fp;
+    FILE *fp, *fp_write;
     int i = 0; 
     int num_read = 0;
     char *str_read, *str1;
@@ -170,8 +147,7 @@ int main(void){
     initialize(qR, ele_att_hash, &pairing, &g, &h, C, C_tilde, Cy, Cy_prime,
     &message_mpz, message_ele);
 
-    //randomly pick the nodes' values and save them into a file
-    
+    //randomly pick the nodes' values qR[i] and save them into a file
     fp = fopen("nodes_value_of_tree.txt", "w+");
     if(!fp)
         pbc_die("error opening the tree value file");
@@ -188,7 +164,7 @@ int main(void){
     //here is the encryption part
     //compute Cs and C_primes
     for(i = 0; i < NUM_SHARE; i++){
-        element_pow_zn(Cy[i], g, qR[i+1]);    
+        element_pow_zn(Cy[i], g, qR[i+1]);   
         element_pow_zn(Cy_prime[i], ele_att_hash[i], qR[i+1]);
     }
     //read out the public key h of authorizer
@@ -227,10 +203,14 @@ int main(void){
     element_pow_zn(*C_tilde, *C_tilde, qR[0]);//e(g, g)^(alpha*s)
     
     //read out the message and  
-    fp = fopen("../public/message.txt", "r");
+    fp = fopen("password.txt", "r");
     if(!fp)
         pbc_die("fail to open the message file");
     else{
+        fp_write = fopen("encryption_header.txt", "w+");
+        if(!fp_write)
+            pbc_die("creat encryption file failed");
+        fprintf(fp_write, "C_tilde:");
         while(true){
             num_read = fread(str_read, 1, 100, fp);
             str_read[num_read] = '\0';
@@ -247,6 +227,7 @@ int main(void){
            //multiply it by e(g,g)^(alpha*s)
            element_mul(*C_tilde, *C_tilde, *message_ele);
            //write the encrypted data to file
+           element_out_str(fp_write, 10, *C_tilde);
            if(feof(fp)){
                 break;
             }
@@ -254,7 +235,17 @@ int main(void){
                 pbc_die("reading error occurs");
         */
         }
+        //write the Cy and Cy_prime into the file
+        // i starts from 1, because qR[0] is secret s that we want to protect, qR[1], qR[2], ...,
+        // qR[NUM_SHARE] are the secret shares
+        for(i = 1; i < NUM_SHARE; i++){
+            fprintf(fp_write,"\nCy[%d]:", i);
+            element_out_str(fp_write, 10, Cy[i]);
+            fprintf(fp_write, "\nCy_prime[%d]:", i);
+            element_out_str(fp_write, 10, Cy_prime[i]);
+        }
         fclose(fp);
+        fclose(fp_write);
     }
     finalize(qR, ele_att_hash, &g, &h, C, C_tilde, Cy, Cy_prime, &message_mpz,
     message_ele); 
