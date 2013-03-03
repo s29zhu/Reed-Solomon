@@ -34,22 +34,22 @@ int main(void){
     element_t g, alpha, e_g_g, secret_key, pub_key;
     FILE *fp;
     char s[16384];
+    static const char *parameter = "type a\n"
+            "q 8780710799663312522437781984754049815806883199414208211028653399266475630880222957078625179422662221423155858769582317459277713367317481324925129998224791\n"
+            "h 12016012264891146079388821366740534204802954401251311822919615131047207289359704531102844802183906537786776\n"
+            "r 730750818665451621361119245571504901405976559617\n"
+            "exp2 159\n"
+            "exp1 107\n"
+            "sign1 1\n"
+            "sign0 1";
 
-    fp = fopen("../public/a.param", "r");
-    if (!fp) 
-        pbc_die("error opening parameter file");
-    size_t count = fread(s, 1, 16384, fp);
-    if(!count) 
-        pbc_die("read parameter failure\n");
-    fclose(fp);
-    if(pairing_init_set_buf(pairing, s, count)) 
+    if(pairing_init_set_str(pairing, parameter)) 
         pbc_die("pairing init failed\n");
     if(!pairing_is_symmetric(pairing)) pbc_die("pairing is not symmetric\n");
     element_init_G1(g, pairing);
     element_init_Zr(alpha, pairing);
     element_init_G1(secret_key, pairing);
     element_init_GT(pub_key, pairing);
-    
 
     element_set(g, ((curve_data_ptr)((a_pairing_data_ptr)
     pairing->data)->Eq->data)->gen);
